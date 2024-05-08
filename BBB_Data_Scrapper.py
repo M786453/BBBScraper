@@ -12,8 +12,7 @@ encoded_location = quote(location)
 
 encoded_txt = quote(txt)
 
-required_list = ["Business Started", "Hours of Operation", "Contact Information", "Business categories", 
-                 "Contact Info", "Phone Number", "Website", "Overview", "Products & Services"]
+required_data_list = ["Business Started:", "Hours of Operation", "Contact Information", "Business Categories"]
 
 url = f"https://www.bbb.org/search?find_country={country}&find_loc={location}&find_text={txt}&page="
 
@@ -67,25 +66,84 @@ for pageNumber in range(1, total_Pages+1):
         
             try:
 
+                business_data_dict = {"Overview": '', "Product & Services": '',"Business Started": '',  "Hours of Operation" : '', "Contact Information" : '', "Business Categories" : '', 'Website': '', "Phone Number":''}
+
                 driver.switch_to.window(driver.window_handles[1]) #switch to second tab
                 
-                driver.get(link_attrb + "/details")
-                
+                # Overview and Product & Services
+
+                driver.get(link_attrb)
+
                 time.sleep(10)
 
+                try:
+                    overview = driver.find_element(By.XPATH, "//div[contains(@class,'dtm-overview')]//div").text
+                    business_data_dict["Overview"] = overview
+                except:
+                    print("Error @ Overview")
+
+                try:
+                    products_services = driver.find_element(By.XPATH, "//div[contains(@class,'dtm-products-services')]").text
+                    business_data_dict["Product & Services"] = products_services
+                except:
+                    print("Error @ Products & Services")
+
+
+                driver.get(link_attrb + "/details")
+
+                time.sleep(10)
+
+                # Business Started, Hours of Operation, All contact person, Business categories
+
                 div =  driver.find_element(By.XPATH, "//div[@class='stack css-n8vred e1ri33r70']")
-                
+
                 data_heading = div.find_elements(By. TAG_NAME, "dt" )
-                
+
                 data_value = div.find_elements(By. TAG_NAME, "dd")
 
-                for e in range(len(data_heading)):
+                for index in range(len(data_heading)):
 
-                    print(data_heading[e].text, data_value[e].text)
+                    try:
+                        label = data_heading[index].text
+                        if label in required_data_list:
+                            if label.endswith(":"):
+                                label = label[:-1]
 
-                print("Profile:",link_attrb)
-                
+                            value = data_value[index].text
+                            
+                            business_data_dict[label] = value
+                    except:
+
+                        print("Error in heading loop")
+
+                # Contact Info
+                ## Phone Number, Website
+
+                try:
+                    contact_div = driver.find_element(By.XPATH, "//div[contains(@class,'dtm-contact')]")
+
+                    try:
+                        website = contact_div.find_element(By.TAG_NAME, "a")
+                        business_data_dict["Website"] = website.get_attribute('href')
+                    except:
+                        print("Error @ website")
+
+                    try:
+                        phone_number = contact_div.find_element(By.XPATH, "//a[contains(@class,'dtm-phone')]")
+                        business_data_dict["Phone Number"] = phone_number.text
+                    except:
+                        print("Error @ Phone Number")
+
+                except:
+
+                    print("Error @ contact info")
+
+                print(business_data_dict)
+
                 time.sleep(10)
       
             except:
                 print("Skipping:", link_attrb)
+
+# https://www.bbb.org/us/or/portland/profile/esthetician/oregon-laser-wellness-center-1296-1000047797/details
+# https://www.bbb.org/us/or/portland/profile/esthetician/oregon-laser-wellness-center-1296-1000047797
