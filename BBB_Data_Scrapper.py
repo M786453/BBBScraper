@@ -4,7 +4,15 @@ from urllib.parse import quote
 from openpyxl import Workbook
 import time
 
-country, location, txt = "USA", "California", "it services"
+txt = input("Enter Your Query: ")
+
+location = input("Enter Location: ")
+
+country = input("Enter Country (USA/CA): ")
+
+if country not in ["USA", "CA"]:
+    print("Invalid Country.")
+    exit()
 
 page = 1
 
