@@ -53,9 +53,16 @@ def get_business_details(driver, link, link_attrb):
         time.sleep(10)
 
         try:
+
             overview = driver.find_element(By.XPATH, "//div[contains(@class,'dtm-overview')]//div").text
-            business_data_dict["Overview"] = overview
+
+            if 'More Info on Local BBB' in overview:
+                business_data_dict["Overview"] = ''    
+            else:
+                business_data_dict["Overview"] = overview
+
         except:
+            
             print("Error @ Overview")
 
         try:
