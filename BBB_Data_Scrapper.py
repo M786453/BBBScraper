@@ -69,7 +69,8 @@ def get_total_pages(driver):
 
         last_page_tag = pagination.find_elements(By.TAG_NAME, "a")[-3]
 
-        total_pages = int(last_page_tag.text.strip(" ")[-1])
+
+        total_pages = int(last_page_tag.text.split("\n")[-1])
 
     except Exception as e:
 
