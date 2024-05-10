@@ -35,7 +35,7 @@ def load_progress_tracker():
                     
                 except Exception as e:
 
-                    print("Error:", e)    
+                    print("Error in reading progress.json")    
     
         else:
 
@@ -77,7 +77,9 @@ def get_total_pages(driver):
 
     return total_pages
 
-def get_business_details(driver, link, link_attrb):
+def get_business_details(driver, link, link_attrb, remaining_businesses):
+
+    print("")
 
     business_data_dict = {"Title": '',"Overview": '', "Product & Services": '',"Business Started": '',  "Hours of Operation" : '', "Contact Information" : '', "Business Categories" : '', 'Website': '', "Phone Number":''}
 
@@ -86,6 +88,8 @@ def get_business_details(driver, link, link_attrb):
     try:
         
         business_data_dict["Title"] = link.text
+
+        print(f"Scraping business '{link.text}' - {remaining_businesses} more businesses until next page.")
 
         driver.switch_to.window(driver.window_handles[1]) #switch to second tab
         
@@ -106,13 +110,13 @@ def get_business_details(driver, link, link_attrb):
 
         except:
 
-            print("Error @ Overview")
+            print("Overview not found.")
 
         try:
             products_services = driver.find_element(By.XPATH, "//div[contains(@class,'dtm-products-services')]").text
             business_data_dict["Product & Services"] = products_services
         except:
-            print("Error @ Products & Services")
+            print("Products & Services not found.")
 
 
         driver.get(link_attrb + "/details")
@@ -141,11 +145,12 @@ def get_business_details(driver, link, link_attrb):
                         business_data_dict[label] = value
                 except:
 
-                    print("Error in heading loop")
+                    # print("Error in heading loop")
+                    pass
         
         except Exception as e:
 
-            print("Error:", e)
+            print("Error in extracting business details.")
 
         # Contact Info
         ## Phone Number, Website
@@ -157,19 +162,19 @@ def get_business_details(driver, link, link_attrb):
                 website = contact_div.find_element(By.TAG_NAME, "a")
                 business_data_dict["Website"] = website.get_attribute('href')
             except:
-                print("Error @ website")
+                print("Website not found.")
 
             try:
                 phone_number = contact_div.find_element(By.XPATH, "//a[contains(@class,'dtm-phone')]")
                 business_data_dict["Phone Number"] = phone_number.text
             except:
-                print("Error @ Phone Number")
+                print("Phone Number not found.")
 
             is_all_extracted = True
 
         except:
 
-            print("Error @ contact info")
+            print("Contact info not found.")
 
         
     except:
@@ -262,6 +267,8 @@ if __name__ == "__main__":
 
     driver.execute_script(f'''window.open("","_blank");''') # Open new tab
 
+    print("")
+
     print("Total PAGES:", total_pages)
 
     for pageNumber in range(1, total_pages+1):
@@ -270,7 +277,9 @@ if __name__ == "__main__":
 
             continue
 
-        print("PAGE#", pageNumber)
+        print("")
+
+        print("PAGE#", pageNumber, f"of pages {total_pages}")
 
         progress["page_no"] = pageNumber
 
@@ -287,7 +296,11 @@ if __name__ == "__main__":
 
         business_links = driver.find_elements(By.XPATH, "//a[@class='text-blue-medium css-1jw2l11 eou9tt70']")
 
+        remaining_businesses_of_page = len(business_links)
+
         for link in business_links:
+
+            remaining_businesses_of_page -= 1
 
             driver.switch_to.window(driver.window_handles[0]) #switch to first tab
             
@@ -295,7 +308,7 @@ if __name__ == "__main__":
             
             if link_attrb.startswith("https://www.bbb.org/") and link_attrb not in progress['visited_businesses']:
 
-                is_all_extracted, business = get_business_details(driver, link, link_attrb)
+                is_all_extracted, business = get_business_details(driver, link, link_attrb, remaining_businesses_of_page)
 
                 if is_all_extracted:
 
@@ -315,4 +328,4 @@ if __name__ == "__main__":
     try:
         os.remove('progress.json')
     except Exception as e:
-        print("Error:", e)
+        print("Error in removing progress.json.")
