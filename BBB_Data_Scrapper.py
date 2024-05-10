@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 from openpyxl import Workbook
 from openpyxl import load_workbook
 import time
@@ -177,10 +178,17 @@ def get_business_details(driver, link, link_attrb):
 
     return is_all_extracted, business_data_dict
 
-
 if __name__ == "__main__":
 
-    driver = webdriver.Chrome()
+    chrome_options = Options()
+
+    chrome_options.add_argument('--headless')
+
+    chrome_options.add_argument("--log-level=3")
+
+    chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0')
+
+    driver = webdriver.Chrome(options=chrome_options)
 
     progress_status, progress = load_progress_tracker()
 
